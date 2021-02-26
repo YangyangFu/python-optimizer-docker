@@ -30,9 +30,21 @@ RUN apt-get update && \
     subversion=1.9.7-4ubuntu1 \
     swig=3.0.12-1 \
     wget=1.19.4-1ubuntu2.2 \
-    zlib1g-dev=1:1.2.11.dfsg-0ubuntu2 && \
+    zlib1g-dev=1:1.2.11.dfsg-0ubuntu2 \
+    git && \
     rm -rf /var/lib/apt/lists/*
 
+# Replace 1000 with your user / group id
+RUN export uid=1000 gid=1000 && \
+    mkdir -p /home/developer && \
+    mkdir -p /etc/sudoers.d && \
+    echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
+    echo "developer:x:${uid}:" >> /etc/group && \
+    echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer && \
+    chown ${uid}:${gid} -R /home/developer
+
+ENV HOME /home/developer
 
 # Get Install Ipopt and delete source code after installation
 # IPOPT have different folder structures after 3.13. 
@@ -71,25 +83,16 @@ RUN pip install DerApproximator
 
 # connect ipopt with openopt
 # install ipopt python wrapper
-RUN cd $HOME/github && git clone https://github.com/YangyangFu/pyipopt.git && ls -l
+WORKDIR $HOME
+RUN mkdir github && cd github && git clone https://github.com/YangyangFu/pyipopt.git && ls -l
 RUN cd $HOME/github/pyipopt && python setup.py build && python setup.py install
 
 ### Finish installation
 # add plotting library
 RUN pip install matplotlib
 
-# Replace 1000 with your user / group id
-RUN export uid=1000 gid=1000 && \
-    mkdir -p /home/developer && \
-    mkdir -p /etc/sudoers.d && \
-    echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
-    echo "developer:x:${uid}:" >> /etc/group && \
-    echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
-    chmod 0440 /etc/sudoers.d/developer && \
-    chown ${uid}:${gid} -R /home/developer
-
+# change users
 USER developer
-ENV HOME /home/developer
 
 # Avoid warning that Matplotlib is building the font cache using fc-list. This may take a moment.
 # This needs to be towards the end of the script as the command writes data to
