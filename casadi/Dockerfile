@@ -1,8 +1,13 @@
-FROM yangyangfu/pyomo_ipopt
+FROM continuumio/miniconda3:latest
+LABEL maintainer Yangyang Fu(yangyang.fu@tamu.edu)
 
-USER root
-RUN pip install casadi
-#ENV PATH &PATH:/usr/local/lib/python2.7/dist-packages/casadi
-#ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib/python2.7/dist-packages/casadi
+### ====================================================================================
+### install env for OPC: optimizer, nonlinear system identifier
+RUN conda update conda && \
+    conda config --add channels conda-forge && \
+    conda install casadi matplotlib
 
-USER developer
+# Avoid warning that Matplotlib is building the font cache using fc-list. This may take a moment.
+# This needs to be towards the end of the script as the command writes data to
+# /home/developer/.cache
+RUN python -c "import matplotlib.pyplot"

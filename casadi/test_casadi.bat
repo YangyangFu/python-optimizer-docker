@@ -8,4 +8,3 @@ docker run --name casadi_con^
 	  -i^
       -t^
 	  casadi /bin/bash -c "cd /mnt/shared && python /mnt/shared/test_casadi.py"
-
